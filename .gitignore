@@ -1,0 +1,4 @@
+*.aar
+*-sources.jar
+*.xcframework
+*.framework
