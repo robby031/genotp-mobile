@@ -27,10 +27,11 @@ jobs:
       - name: Run tests
         run: go test ./...
 
+      - name: Install gosec
+        run: go install github.com/securego/gosec/v2/cmd/gosec@v2.22.8
+
       - name: Run gosec
-        uses: securego/gosec@v2.22.8
-        with:
-          args: ./...
+        run: gosec ./...
 
       - name: Run golangci-lint
         uses: golangci/golangci-lint-action@v8
