@@ -381,6 +381,7 @@ func checkedIntToUint32(value int) (uint32, error) {
 	if uint64(value) > math.MaxUint32 {
 		return 0, errors.New("value out of uint32 range")
 	}
+	// #nosec G115 -- value is range-checked above before narrowing to uint32.
 	return uint32(value), nil
 }
 
