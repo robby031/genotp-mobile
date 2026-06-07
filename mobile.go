@@ -375,7 +375,10 @@ func parseAlgoString(s string) genotp.Algorithm {
 }
 
 func checkedIntToUint32(value int) (uint32, error) {
-	if value < 0 || value > math.MaxUint32 {
+	if value < 0 {
+		return 0, errors.New("value out of uint32 range")
+	}
+	if uint64(value) > math.MaxUint32 {
 		return 0, errors.New("value out of uint32 range")
 	}
 	return uint32(value), nil
