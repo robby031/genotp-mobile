@@ -2,7 +2,7 @@ module genotp-mobile
 
 go 1.26.3
 
-require github.com/robby031/genotp-go v1.1.2
+require github.com/robby031/genotp-go v1.2.2
 
 require (
 	golang.org/x/mobile v0.0.0-20260602190626-68735029466e // indirect
