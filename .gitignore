@@ -1,4 +1,6 @@
 *.aar
 *-sources.jar
 *.xcframework
+*.xcframework.zip
 *.framework
+SHA256SUMS
