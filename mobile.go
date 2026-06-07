@@ -1,6 +1,7 @@
 package mobile
 
 import (
+	"encoding/json"
 	"strings"
 
 	genotp "github.com/robby031/genotp-go"
@@ -239,6 +240,34 @@ func BuildHotpUri(label, secretB32, issuer, algorithm string, digits int, counte
 		Digits(uint32(digits)).
 		Counter(uint64(counter)).
 		Build()
+}
+
+func BuildOtpAuthMigrationUri(accountsJSON string, version, batchSize, batchIndex, batchID int) (string, error) {
+	var accounts []genotp.OtpAuthMigrationAccount
+	if err := json.Unmarshal([]byte(accountsJSON), &accounts); err != nil {
+		return "", err
+	}
+
+	return genotp.BuildOtpAuthMigrationURI(accounts, &genotp.OtpAuthMigrationOptions{
+		Version:    int32(version),
+		BatchSize:  int32(batchSize),
+		BatchIndex: int32(batchIndex),
+		BatchID:    int32(batchID),
+	})
+}
+
+func ParseOtpAuthMigrationUri(uri string) (string, error) {
+	payload, err := genotp.ParseOtpAuthMigrationURI(uri)
+	if err != nil {
+		return "", err
+	}
+
+	data, err := json.Marshal(payload)
+	if err != nil {
+		return "", err
+	}
+
+	return string(data), nil
 }
 
 func decodeBase32(s string) ([]byte, error) {
