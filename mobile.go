@@ -2,6 +2,8 @@ package mobile
 
 import (
 	"encoding/json"
+	"errors"
+	"math"
 	"strings"
 
 	genotp "github.com/robby031/genotp-go"
@@ -90,6 +92,9 @@ func (h *HotpHandle) VerifyWithResync(code string, counter, lookAhead int64) (*R
 	newCounter, valid, err := h.inner.VerifyWithResync(code, uint64(counter), uint64(lookAhead))
 	if err != nil {
 		return nil, err
+	}
+	if newCounter > math.MaxInt64 {
+		return nil, errors.New("counter exceeds int64 range")
 	}
 	return &ResyncResult{NewCounter: int64(newCounter), Valid: valid}, nil
 }
@@ -246,6 +251,12 @@ func BuildOtpAuthMigrationUri(accountsJSON string, version, batchSize, batchInde
 	var accounts []genotp.OtpAuthMigrationAccount
 	if err := json.Unmarshal([]byte(accountsJSON), &accounts); err != nil {
 		return "", err
+	}
+	if version < 0 || batchSize < 0 || batchIndex < 0 || batchID < 0 {
+		return "", errors.New("migration metadata must be non-negative")
+	}
+	if version > math.MaxInt32 || batchSize > math.MaxInt32 || batchIndex > math.MaxInt32 || batchID > math.MaxInt32 {
+		return "", errors.New("migration metadata exceeds int32 range")
 	}
 
 	return genotp.BuildOtpAuthMigrationURI(accounts, &genotp.OtpAuthMigrationOptions{
