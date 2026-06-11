@@ -7,8 +7,9 @@ ANDROID_SDK ?= $(HOME)/Library/Android/sdk
 NDK_VERSION ?= $(shell ls $(ANDROID_SDK)/ndk 2>/dev/null | sort -V | tail -1)
 ANDROID_NDK_HOME ?= $(ANDROID_SDK)/ndk/$(NDK_VERSION)
 X_MOBILE_VERSION ?= $(shell go list -m -f '{{.Version}}' golang.org/x/mobile)
+ANDROID_EXT_LDFLAGS ?= -Wl,-z,max-page-size=16384
 
-.PHONY: init build-android build-ios build-all package-ios build-source-jar checksums clean
+.PHONY: init build-android verify-android-elf build-ios build-all package-ios build-source-jar checksums clean
 
 init:
 	go install golang.org/x/mobile/cmd/gomobile@$(X_MOBILE_VERSION)
@@ -17,7 +18,16 @@ init:
 ANDROID_API ?= 21
 
 build-android:
-	ANDROID_NDK_HOME=$(ANDROID_NDK_HOME) gomobile bind -target android -androidapi $(ANDROID_API) -o $(ANDROID_OUT) .
+	ANDROID_NDK_HOME=$(ANDROID_NDK_HOME) gomobile bind -target android -androidapi $(ANDROID_API) -ldflags='-extldflags=$(ANDROID_EXT_LDFLAGS)' -o $(ANDROID_OUT) .
+
+verify-android-elf:
+	@tmpdir=$$(mktemp -d); \
+	unzip -oq $(ANDROID_OUT) -d $$tmpdir; \
+	for so in $$tmpdir/jni/*/libgojni.so; do \
+		echo "Checking $$so"; \
+		llvm-readelf -l $$so | awk '/LOAD/{getline; if ($$NF != "0x4000") { print "Invalid alignment for " FILENAME ": " $$NF; exit 1 }}'; \
+	done; \
+	rm -rf $$tmpdir
 
 build-ios:
 	gomobile bind -target ios -o $(IOS_OUT) .
